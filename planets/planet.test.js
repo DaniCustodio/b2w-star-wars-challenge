@@ -85,7 +85,46 @@ describe("/planets", () => {
     });
   });
 
-  describe("/search", () => {});
+  describe("/search", () => {
+
+    it("should return a planet given its name", async () => {
+
+      await request(app).post("/").send(PLANET);
+
+      const response = await request(app).get(`/name/${PLANET.name}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.refCode).toBe(1);
+      expect(response.body.data).toMatchObject(PLANET)
+    })
+
+    it("should return an error when the planet does not exist, given its name", async () => {
+      const response = await request(app).get(`/name/${PLANET.name}`);
+
+      expect(response.status).toBe(400);
+      expect(response.body.refCode).toBe(97);
+      expect(response.body.message).toBe("this planet doesn't exist");
+    })
+    
+
+    it("should return a planet given its id", async () => {
+      await request(app).post("/").send(PLANET);
+
+      const response = await request(app).get("/1");
+
+      expect(response.status).toBe(200);
+      expect(response.body.refCode).toBe(1);
+      expect(response.body.data).toMatchObject(PLANET)
+    })
+
+    it("should return an error when the planet does not exist, given its id", async () => {
+      const response = await request(app).get(`/1`);
+
+      expect(response.status).toBe(400);
+      expect(response.body.refCode).toBe(97);
+      expect(response.body.message).toBe("this planet doesn't exist");
+    })
+  });
 
   describe("/delete", () => {
     it("should delete a entry", async () => {

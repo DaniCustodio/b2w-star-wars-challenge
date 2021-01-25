@@ -25,14 +25,32 @@ const deletePlanet = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+const searchByName = (req, res, next) => {
+  planetService
+    .searchByName(req.params.name)
+    .then((planet) =>
+      res.json({ refCode: 1, message: "success", data: planet })
+    )
+    .catch((err) => next(err));
+};
+
+const searchById = (req, res, next) => {
+  planetService
+    .searchById(req.params.id)
+    .then((planet) =>
+      res.json({ refCode: 1, message: "success", data: planet })
+    )
+    .catch((err) => next(err));
+};
+
 // list all planets
 router.get("/", getAll);
 
 // search by name
-router.get("/:name", (req, res) => {});
+router.get("/name/:name", searchByName);
 
 // search by id
-router.get("/:id", (req, res) => {});
+router.get("/:id", searchById);
 
 // add a planet
 router.post("/", add);

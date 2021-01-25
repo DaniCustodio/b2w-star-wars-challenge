@@ -32,7 +32,18 @@ const create = async params => {
   }
 
 
-  const planet = new Planet({...params, filmAppearances})
+  let id;
+
+  const entries = await Planet.find().sort({id: -1})
+
+  if(entries.length === 0) {
+    id = 1
+  } else {
+    id = entries[0].id + 1
+  }
+
+
+  const planet = new Planet({...params, id, filmAppearances})
 
   await planet.save()
 }
@@ -46,8 +57,27 @@ const removePlanet = async (params) => {
   if(!deletedPlanet) throw 'this planet doesn\'t exist'
 };
 
+const searchByName = async (name) => {
+  const planet = await Planet.findOne({ name })
+
+  if(!planet) throw 'this planet doesn\'t exist'
+
+  return planet;
+
+};
+
+const searchById = async (id) => {
+  const planet = await Planet.findOne({ id })
+
+  if(!planet) throw 'this planet doesn\'t exist'
+
+  return planet;
+};
+
 module.exports = {
   create,
   getPlanets,
-  removePlanet
+  removePlanet,
+  searchByName,
+  searchById
 }
