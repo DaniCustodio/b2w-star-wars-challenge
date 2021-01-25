@@ -10,57 +10,97 @@ async function removeAllCollections () {
   }
 }
 
+const PLANET = {
+  name: 'Naboo',
+  terrain: 'grassy hills, swamps, forests, mountains',
+  climate: 'temperate',
+}
+
+const PLANET2 = {
+  name: 'Dagobah',
+  terrain: 'swamp, jungles',
+  climate: 'murky',
+}
+
 describe('/planets', () => {
   afterEach(async () => {
     removeAllCollections()
-	})
+  })
+  
+  describe('/add', () => {
+    it('should add a planet to the database', async () => {
 
-  it('should add a planet to the database', async () => {
-
-    const PLANET = {
-      name: 'Terra',
-      terrain: 'diverso',
-      climate: 'diverso',
-    }
-
-    const response = await request(app)
-				.post("/")
-        .send(PLANET)
-
-    expect(response.status).toBe(200)
-    expect(response.body.refCode).toBe(1)
+      
+  
+      const response = await request(app)
+          .post("/")
+          .send(PLANET)
+  
+      expect(response.status).toBe(200)
+      expect(response.body.refCode).toBe(1)
+    })
+  
+    it('should NOT add a planet when there is a required field missing', async () => {
+      const PLANET = {
+        name: 'Terra',
+        terrain: 'diverso',
+      }
+  
+      const response = await request(app)
+          .post("/")
+          .send(PLANET)
+  
+      expect(response.status).toBe(400)
+      expect(response.body.refCode).toBe(98)
+    })
+  
+    it('should NOT add a planet when a unique field already exists', async () => {
+      const PLANET = {
+        name: 'Terra',
+        terrain: 'diverso',
+        climate: 'diverso',
+      }
+  
+      await request(app)
+          .post("/")
+          .send(PLANET)
+  
+      const response = await request(app)
+          .post("/")
+          .send(PLANET)
+  
+      expect(response.status).toBe(400)
+      expect(response.body.refCode).toBe(96)
+    })
   })
 
-  it('should NOT add a planet when there is a required field missing', async () => {
-    const PLANET = {
-      name: 'Terra',
-      terrain: 'diverso',
-    }
+  describe('/getAll', () => {
+    it('should return 2 entries ', async () => {
+      await request(app)
+          .post("/")
+          .send(PLANET)
 
-    const response = await request(app)
-				.post("/")
-        .send(PLANET)
+      await request(app)
+          .post("/")
+          .send(PLANET2)
 
-    expect(response.status).toBe(400)
-    expect(response.body.refCode).toBe(98)
+      const response = await request(app).get('/')
+
+      expect(response.status).toBe(200)
+      expect(response.body.refCode).toBe(1)
+      expect(response.body.data.length).toBe(2)
+    })
+
+    it('should return 0 entries ', async () => {
+      const response = await request(app).get('/')
+
+      expect(response.status).toBe(200)
+      expect(response.body.refCode).toBe(1)
+      expect(response.body.data.length).toBe(0)
+    })
   })
 
-  it('should NOT add a planet when a unique field already exists', async () => {
-    const PLANET = {
-      name: 'Terra',
-      terrain: 'diverso',
-      climate: 'diverso',
-    }
-
-    await request(app)
-				.post("/")
-        .send(PLANET)
-
-    const response = await request(app)
-				.post("/")
-        .send(PLANET)
-
-    expect(response.status).toBe(400)
-    expect(response.body.refCode).toBe(96)
-  })
+  describe('/search', () => {})
+  describe('/delete', () => {})
+  
 })

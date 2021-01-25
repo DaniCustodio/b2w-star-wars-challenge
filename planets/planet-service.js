@@ -37,6 +37,11 @@ const create = async params => {
   await planet.save()
 }
 
+const getPlanets = async () => {
+  return await Planet.find();
+};
+
 module.exports = {
-  create
+  create,
+  getPlanets
 }

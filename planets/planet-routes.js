@@ -5,12 +5,21 @@ const planetService = require("./planet-service");
 const add = (req, res, next) => {
   planetService
     .create(req.body)
-    .then(() => res.json({refCode: 1, message: "success"}))
+    .then(() => res.json({ refCode: 1, message: "success" }))
+    .catch((err) => next(err));
+};
+
+const getAll = (req, res, next) => {
+  planetService
+    .getPlanets()
+    .then((planets) =>
+      res.json({ refCode: 1, message: "success", data: planets || [] })
+    )
     .catch((err) => next(err));
 };
 
 // list all planets
-router.get("/", (req, res) => {});
+router.get("/", getAll);
 
 // search by name
 router.get("/:name", (req, res) => {});
