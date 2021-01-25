@@ -18,6 +18,13 @@ const getAll = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+const deletePlanet = (req, res, next) => {
+  planetService
+    .removePlanet(req.body)
+    .then(() => res.json({ refCode: 1, message: "success" }))
+    .catch((err) => next(err));
+};
+
 // list all planets
 router.get("/", getAll);
 
@@ -30,7 +37,7 @@ router.get("/:id", (req, res) => {});
 // add a planet
 router.post("/", add);
 
-// delete a planet
-router.delete("/:id", (req, res) => {});
+// delete a planet by name
+router.delete("/delete", deletePlanet);
 
 module.exports = router;

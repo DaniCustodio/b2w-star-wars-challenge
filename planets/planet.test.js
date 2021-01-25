@@ -1,106 +1,113 @@
-const request = require('supertest')
-const app = require('../app')
-const db = require('../_helpers/db').db;
+const request = require("supertest");
+const app = require("../app");
+const db = require("../_helpers/db").db;
 
-async function removeAllCollections () {
-  const collections = Object.keys(db.collections)
+async function removeAllCollections() {
+  const collections = Object.keys(db.collections);
   for (const collectionName of collections) {
-    const collection = db.collections[collectionName]
-    await collection.deleteMany()
+    const collection = db.collections[collectionName];
+    await collection.deleteMany();
   }
 }
 
 const PLANET = {
-  name: 'Naboo',
-  terrain: 'grassy hills, swamps, forests, mountains',
-  climate: 'temperate',
-}
+  name: "Naboo",
+  terrain: "grassy hills, swamps, forests, mountains",
+  climate: "temperate",
+};
 
 const PLANET2 = {
-  name: 'Dagobah',
-  terrain: 'swamp, jungles',
-  climate: 'murky',
-}
+  name: "Dagobah",
+  terrain: "swamp, jungles",
+  climate: "murky",
+};
 
-describe('/planets', () => {
+describe("/planets", () => {
   afterEach(async () => {
-    removeAllCollections()
-  })
-  
-  describe('/add', () => {
-    it('should add a planet to the database', async () => {
+    removeAllCollections();
+  });
 
-      
-  
-      const response = await request(app)
-          .post("/")
-          .send(PLANET)
-  
-      expect(response.status).toBe(200)
-      expect(response.body.refCode).toBe(1)
-    })
-  
-    it('should NOT add a planet when there is a required field missing', async () => {
+  describe("/add", () => {
+    it("should add a planet to the database", async () => {
+      const response = await request(app).post("/").send(PLANET);
+
+      expect(response.status).toBe(200);
+      expect(response.body.refCode).toBe(1);
+    });
+
+    it("should NOT add a planet when there is a required field missing", async () => {
       const PLANET = {
-        name: 'Terra',
-        terrain: 'diverso',
-      }
-  
-      const response = await request(app)
-          .post("/")
-          .send(PLANET)
-  
-      expect(response.status).toBe(400)
-      expect(response.body.refCode).toBe(98)
-    })
-  
-    it('should NOT add a planet when a unique field already exists', async () => {
+        name: "Terra",
+        terrain: "diverso",
+      };
+
+      const response = await request(app).post("/").send(PLANET);
+
+      expect(response.status).toBe(400);
+      expect(response.body.refCode).toBe(98);
+    });
+
+    it("should NOT add a planet when a unique field already exists", async () => {
       const PLANET = {
-        name: 'Terra',
-        terrain: 'diverso',
-        climate: 'diverso',
-      }
-  
-      await request(app)
-          .post("/")
-          .send(PLANET)
-  
+        name: "Terra",
+        terrain: "diverso",
+        climate: "diverso",
+      };
+
+      await request(app).post("/").send(PLANET);
+
+      const response = await request(app).post("/").send(PLANET);
+
+      expect(response.status).toBe(400);
+      expect(response.body.refCode).toBe(96);
+    });
+  });
+
+  describe("/getAll", () => {
+    it("should return 2 entries ", async () => {
+      await request(app).post("/").send(PLANET);
+
+      await request(app).post("/").send(PLANET2);
+
+      const response = await request(app).get("/");
+
+      expect(response.status).toBe(200);
+      expect(response.body.refCode).toBe(1);
+      expect(response.body.data.length).toBe(2);
+    });
+
+    it("should return 0 entries ", async () => {
+      const response = await request(app).get("/");
+
+      expect(response.status).toBe(200);
+      expect(response.body.refCode).toBe(1);
+      expect(response.body.data.length).toBe(0);
+    });
+  });
+
+  describe("/search", () => {});
+
+  describe("/delete", () => {
+    it("should delete a entry", async () => {
+      await request(app).post("/").send(PLANET);
+
       const response = await request(app)
-          .post("/")
-          .send(PLANET)
-  
-      expect(response.status).toBe(400)
-      expect(response.body.refCode).toBe(96)
-    })
-  })
+        .delete("/delete")
+        .send({ name: PLANET.name });
 
-  describe('/getAll', () => {
-    it('should return 2 entries ', async () => {
-      await request(app)
-          .post("/")
-          .send(PLANET)
+      const entries = await request(app).get("/");
 
-      await request(app)
-          .post("/")
-          .send(PLANET2)
+      expect(response.status).toBe(200);
+      expect(response.body.refCode).toBe(1);
+      expect(entries.body.data.length).toBe(0);
+    });
 
-      const response = await request(app).get('/')
+    it("should return a error when the planet doesn't exist", async () => {
+      const response = await request(app).delete("/delete").send(PLANET.name);
 
-      expect(response.status).toBe(200)
-      expect(response.body.refCode).toBe(1)
-      expect(response.body.data.length).toBe(2)
-    })
-
-    it('should return 0 entries ', async () => {
-      const response = await request(app).get('/')
-
-      expect(response.status).toBe(200)
-      expect(response.body.refCode).toBe(1)
-      expect(response.body.data.length).toBe(0)
-    })
-  })
-
-  describe('/search', () => {})
-  describe('/delete', () => {})
-  
-})
+      expect(response.status).toBe(400);
+      expect(response.body.refCode).toBe(97);
+      expect(response.body.message).toBe("this planet doesn't exist");
+    });
+  });
+});

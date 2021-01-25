@@ -41,7 +41,13 @@ const getPlanets = async () => {
   return await Planet.find();
 };
 
+const removePlanet = async (params) => {
+  const deletedPlanet = await Planet.findOneAndDelete({name: params.name}) 
+  if(!deletedPlanet) throw 'this planet doesn\'t exist'
+};
+
 module.exports = {
   create,
-  getPlanets
+  getPlanets,
+  removePlanet
 }
